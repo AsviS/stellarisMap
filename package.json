@@ -1,0 +1,28 @@
+{
+  "name": "stellaris_map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "serve": "webpack-dev-server --mode development",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode=production"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.3.1",
+    "worker-loader": "^2.0.0"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.1",
+    "jomini": "^0.2.8",
+    "jszip": "^3.2.1",
+    "mathjs": "^5.9.0",
+    "polygon-tools": "^0.4.8",
+    "smooth-polyline": "^1.0.6"
+  }
+}
