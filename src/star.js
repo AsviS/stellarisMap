@@ -1,4 +1,3 @@
-import Colors from "./colors";
 import {circleCircleIntersections, lineLineIntersection} from "./math";
 import getUniqueName from "./initializersNames";
 
@@ -18,9 +17,6 @@ export default class Star{
 		this._starBaseLevel = starBaseLevel;
 		this.importants = [];
 		this._intelLevel = intelLevel;
-		this._colors = {
-			country: "void"
-		};
 		this._pointsOfInfluence = this.circleOfInfleunce;
 		this._border = [];
 
@@ -59,15 +55,6 @@ export default class Star{
 	get owner(){
 		return this._owner;
 	}
-	get colors(){
-		return this._colors;
-	}
-	get spaceColor(){
-		return this._colors.space;
-	}
-	get borderColor(){
-		return this._colors.border;
-	}
 	get intelLevel(){
 		return this._intelLevel;
 	}
@@ -102,24 +89,11 @@ export default class Star{
 		this._border = pointsArr;
 	}
 	clear(){
-		delete this._colors;
 		delete this._pointsOfInfluence;
 		delete this._border;
 	}
 	static get RADIUS_OF_INFLUENCE(){
 		return 30;
-	}
-	static setCountryColor(stars, countries){
-		stars.forEach(star => {
-			if(star.owner === undefined) return;
-			const country = countries[star.owner];
-			star.colors.space = Colors.getCountryColor(country.flag.colors[1]);
-			star.colors.border = Colors.getCountryColor(country.flag.colors[0]);
-		});
-	}
-	static initStars(gameData){
-		Star.setCountryColor(gameData.stars, gameData.countries);
-		return gameData.stars;
 	}
 	static solveInfluenceCollisions(stars){
 		// for each point in range of each neighbour of each star

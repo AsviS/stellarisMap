@@ -126,6 +126,28 @@ export default class GameData{
 		}
 		return configs;
 	}
+	get relations(){
+		const playerCountry = this._data.country[0];
+		if(playerCountry.relations_manager && playerCountry.relations_manager.relation){
+			const relations = playerCountry.relations_manager.relation;
+			return relations.map(relation => relation.country);
+		}
+		else{
+			return [];
+		}
+	}
+	get colors(){
+		const colors = [];
+		const countries = this.countries;
+		for(let index in countries){
+			if(countries[index].flag){
+				const border = countries[index].flag.colors[0];
+				const space = countries[index].flag.colors[1];
+				colors.push({id: +index, space, border});
+			}
+		}
+		return colors;
+	}
 	parseStars(){
 		const configs = this.starConfigs;
 

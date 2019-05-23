@@ -67,11 +67,11 @@ export default class Canvas{
 	draw({stars = [], countries, state}){
 		this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 		if(state.needToRedraw){
-			this.drawOffScreen({stars, countries});
+			this.drawOffScreen({stars, countries, state});
 		}
 		this._ctx.drawImage(this._offScreenCanvas, 0, 0);
 	}
-	drawOffScreen({stars = [], countries = []}){
+	drawOffScreen({stars = [], countries = [], state}){
 		const prefs = {
 			context: this._offScreenCtx,
 			stars,
@@ -81,13 +81,19 @@ export default class Canvas{
 		this.drawBackground(prefs);
 		
 		this._offScreenCtx.setTransform(this._scale, 0, 0, this._scale, this._offset.x, this._offset.y);
-		this.drawBorders(prefs);
-		this.drawSpace(prefs);
-		this.drawHyperlanes(prefs);
-		this.drawStars(prefs);
-
-		if(this._scale > 4)
+		if(state.drawCountries){
+			this.drawBorders(prefs);
+			this.drawSpace(prefs);
+		}
+		if(state.drawHyperlanes){
+			this.drawHyperlanes(prefs);
+		}
+		if(state.drawStars){
+			this.drawStars(prefs);
+		}
+		if(state.drawLabels && this._scale > 4){
 			this.drawStarLabels(prefs);
+		}
 
 		this._offScreenCtx.resetTransform();
 	}
@@ -107,13 +113,15 @@ export default class Canvas{
 	}
 	drawBorders({countries, context}){
 		countries.forEach(country => {
-			context.fillStyle = country.space.color;
+			if(!country.isKnown) return;
+			context.fillStyle = country.border.color;
 			context.fill(country.space.path);
 		});
 	}
 	drawSpace({countries, context}){
 		countries.forEach(country => {
-			context.fillStyle = country.border.color;
+			if(!country.isKnown) return;
+			context.fillStyle = country.space.color;
 			context.fill(country.border.path);
 		});
 	}

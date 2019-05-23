@@ -21,13 +21,13 @@ async function main(){
 	//prevent default on dragover needed for a proper work of the drop event
 	document.addEventListener("dragover", e => e.preventDefault());
 
-	const saveObj = await mockSaveObj();
-	onSaveReady(saveObj);
-	// const map = await mockMap();
-	// onMapLoad(map);
+	// const saveObj = await mockSaveObj();
+	// onSaveReady(saveObj);
+	const map = await mockMap();
+	onMapLoad(map);
 }
 async function mockSaveObj(){
-	const obj = await fetch("./saveObj.json")
+	const obj = await fetch("./saveObj2.json")
 		.then(resp => resp.json())
 		.then(obj => obj)
 		.catch(e => console.log(e));
@@ -52,18 +52,20 @@ async function onMapLoad(obj){
 	};
 	const canvas = new Canvas(canvasConfig);
 	const stars = obj.starConfigs.map(config => new Star(config));
-	Star.solveInfluenceCollisions(stars, canvas);
+	Star.solveInfluenceCollisions(stars);
 	Star.setBorder(stars, 3);
-	const countries = Country.get(stars);
-
-	console.log(countries);
+	const countries = Country.get({stars, ...obj.countryConfigs});
 
 	const coords = stars.map(star => star.coords);
 	const midX = coords.reduce((acc, {x}) => x + acc, 0)/coords.length;
 	const midY = coords.reduce((acc, {y}) => y + acc, 0)/coords.length;
 	
 	const state = {
-		needToRedraw: true
+		needToRedraw: true,
+		drawCountries: true,
+		drawHyperlanes: true,
+		drawStars: true,
+		drawLabels: true
 	};
 	await canvas.loadSprites();
 
@@ -82,19 +84,26 @@ async function onSaveReady(obj){
 		galaxyDiameter: safeGalaxyRadius * 2
 	};
 	const canvas = new Canvas(canvasConfig);
-	const stars = Star.initStars(gameData);
+	const stars = gameData.stars;
 	const starConfigs = gameData.starConfigs;
-	Star.solveInfluenceCollisions(stars, canvas);
+	Star.solveInfluenceCollisions(stars);
 	Star.setBorder(stars, 3);
-	const countries = Country.get(stars);
-	const countryConfigs = Country.configs(countries);
+	const relations = gameData.relations;
+	const colors = gameData.colors;
+	const countryConfigs = {relations, colors};
+	const countries = Country.get({stars, ...countryConfigs});
+	console.log(countries);
 
 	const coords = stars.map(star => star.coords);
 	const midX = coords.reduce((acc, {x}) => x + acc, 0)/coords.length;
 	const midY = coords.reduce((acc, {y}) => y + acc, 0)/coords.length;
 	
 	const state = {
-		needToRedraw: true
+		needToRedraw: true,
+		drawCountries: false,
+		drawHyperlanes: true,
+		drawStars: true,
+		drawLabels: false
 	};
 
 	console.log(gameData.data);
@@ -110,7 +119,7 @@ async function onSaveReady(obj){
 	
 	draw({canvas, stars, countries, state});
 	setEventListeners({canvas, state});
-	// downloadMap({starConfigs, safeGalaxyRadius});
+	downloadMap({starConfigs, countryConfigs, safeGalaxyRadius});
 }
 function setEventListeners({canvas, state}){
 	const keys = {
@@ -125,10 +134,32 @@ function setEventListeners({canvas, state}){
 	document.addEventListener("keydown", move({canvas, keys, mode: "down", state}));
 	document.addEventListener("keyup", move({canvas, keys, mode: "up", state}));
 	window.addEventListener("resize", onResize({canvas, state}));
+	document.querySelectorAll(".map-selector-button").forEach(button => {
+		button.addEventListener("click", changeDrawRules({state}));
+	});
 }
-function downloadMap({starConfigs, safeGalaxyRadius}){
-	const file = new File([JSON.stringify({starConfigs, safeGalaxyRadius})], "map.json", {type: "application/json"});
+function downloadMap({starConfigs, countryConfigs, safeGalaxyRadius}){
+	const file = new File([JSON.stringify({starConfigs, countryConfigs, safeGalaxyRadius})], "map.json", {type: "application/json"});
 	saveAs(file, "map.json");
+}
+function changeDrawRules({state}){
+	return function(e){
+		const rule = e.currentTarget.dataset.selector;
+		if(rule === "stars"){
+			state.drawStars = !state.drawStars;
+		}
+		else if(rule === "hyperlanes"){
+			state.drawHyperlanes = !state.drawHyperlanes;
+		}
+		else if(rule === "borders"){
+			state.drawCountries = !state.drawCountries;
+		}
+		else if(rule === "labels"){
+			state.drawLabels = !state.drawLabels;
+		}
+		e.currentTarget.classList.toggle("active");
+		state.needToRedraw = true;
+	};
 }
 function screenToCanvasCoords({screenCoords, scale, offset}){
 	return {

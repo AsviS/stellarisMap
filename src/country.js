@@ -1,23 +1,31 @@
 import {polygon} from "polygon-tools";
+import Colors from "./colors";
 
 export default class Country{
-	constructor({id, stars}){
+	constructor({id, stars, relations, colors}){
 		this._id = id;
 		this._stars = stars.filter(star => star.owner === id);
-		this._colors = this._stars[0].colors;
 		this._space = this.spacePolygons;
 		this._border = this.borderPolygons;
+		this._hasRelations = relations.includes(id);
+		this._colors = colors.find(color => color.id === id);
 		this._paths = {
 			border: {
 				path: null,
-				color: this._colors.space
+				color: Colors.getCountryColor(this._colors.border)
 			},
 			space: {
 				path: null,
-				color: this._colors.border
+				color: Colors.getCountryColor(this._colors.space)
 			}
 		};
 		this.setPaths();
+	}
+	get id(){
+		return this._id;
+	}
+	get isKnown(){
+		return this._id === 0 || this._hasRelations;
 	}
 	get borderColor(){
 		return this._colors.border;
@@ -42,9 +50,6 @@ export default class Country{
 
 		const borderPolygons = this._stars.map(star => star.border);
 		return Country.unitePolygons(borderPolygons);
-	}
-	config(gameData){
-		return this._config;
 	}
 	clear(){
 		delete this._space;
@@ -200,11 +205,11 @@ export default class Country{
 			.filter(isNotNull)
 			.map(arrToObjPolygon);
 	}
-	static get(stars){
+	static get({stars, relations, colors}){
 		const owners = stars
 			.filter(star => star.owner !== undefined)
 			.map(star => star.owner);
 		const ownersUnique = [...new Set(owners)];
-		return ownersUnique.map(ownerId => new Country({id: ownerId, stars}));
+		return ownersUnique.map(ownerId => new Country({id: ownerId, stars, relations, colors}));
 	}
 }
